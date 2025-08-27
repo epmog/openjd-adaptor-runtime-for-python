@@ -18,6 +18,13 @@ from pywintypes import HANDLE
 from enum import Enum
 import os
 
+from .._win32._named_pipes import (
+    CreateNamedPipeA,
+    PIPE_ACCESS_DUPLEX,
+    PIPE_TYPE_MESSAGE,
+    PIPE_READMODE_MESSAGE,
+    PIPE_WAIT,
+)
 
 from .named_pipe_config import (
     NAMED_PIPE_BUFFER_SIZE,
@@ -179,17 +186,16 @@ class NamedPipeHelper:
             HANDLE: The handler for the created named pipe instance.
 
         """
-
-        pipe_handle = win32pipe.CreateNamedPipe(
-            pipe_name,
+        pipe_handle = CreateNamedPipeA(
+            pipe_name.encode("ascii"),
             # A bi-directional pipe; both server and client processes can read from and write to the pipe.
-            win32pipe.PIPE_ACCESS_DUPLEX,
-            win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_WAIT,
+            PIPE_ACCESS_DUPLEX,
+            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
             DEFAULT_MAX_NAMED_PIPE_INSTANCES,
             NAMED_PIPE_BUFFER_SIZE,  # nOutBufferSize
             NAMED_PIPE_BUFFER_SIZE,  # nInBufferSize
             time_out_in_seconds,
-            NamedPipeHelper.create_security_attributes(),
+            None #TODO: NamedPipeHelper.create_security_attributes(),
         )
         if pipe_handle == win32file.INVALID_HANDLE_VALUE:
             return None

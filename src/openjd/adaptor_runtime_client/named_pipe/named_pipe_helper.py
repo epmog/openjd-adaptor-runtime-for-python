@@ -1,5 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+import ctypes
 import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from random import randint
@@ -11,7 +12,6 @@ import win32con
 import getpass
 import winerror
 import time
-import win32pipe
 import json
 from typing import Dict, List, Optional
 from pywintypes import HANDLE
@@ -19,11 +19,17 @@ from enum import Enum
 import os
 
 from .._win32._named_pipes import (
+    CloseHandle,
+    CreateFileA,
     CreateNamedPipeA,
+    GENERIC_READ,
+    GENERIC_WRITE,
+    OPEN_EXISTING,
     PIPE_ACCESS_DUPLEX,
     PIPE_TYPE_MESSAGE,
     PIPE_READMODE_MESSAGE,
     PIPE_WAIT,
+    SetNamedPipeHandleState,
 )
 
 from .named_pipe_config import (
@@ -326,7 +332,7 @@ class NamedPipeHelper:
                     # Give the read / write permission
                     win32file.GENERIC_READ | win32file.GENERIC_WRITE,
                     0,  # Disable the sharing Mode
-                    NamedPipeHelper.create_security_attributes(),
+                    None, # TODO: NamedPipeHelper.create_security_attributes(),
                     win32file.OPEN_EXISTING,  # Open existing pipe
                     0,  # No Additional flags
                     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
@@ -351,9 +357,11 @@ class NamedPipeHelper:
         # Switch to message-read mode for the pipe. This ensures that each write operation is treated as a
         # distinct message. For example, a single write operation like "Hello from client." will be read
         # entirely in one request, avoiding partial reads like "Hello fr".
+        mode = ctypes.wintypes.DWORD(PIPE_READMODE_MESSAGE)
+        import win32pipe
         win32pipe.SetNamedPipeHandleState(
             handle,  # The handle to the named pipe.
-            win32pipe.PIPE_READMODE_MESSAGE,  # Set the pipe to message mode
+            win32pipe.PIPE_READMODE_MESSAGE, #ctypes.byref(mode),  # Set the pipe to message mode
             # Maximum bytes collected before transmission to the server.
             # 'None' means the system's default value is used.
             None,

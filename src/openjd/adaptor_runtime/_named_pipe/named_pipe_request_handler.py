@@ -14,7 +14,6 @@ from ...adaptor_runtime_client._win32._named_pipes import (
     CloseHandle,
     DisconnectNamedPipe,
 )
-import win32pipe
 import win32file
 from pywintypes import HANDLE
 from http import HTTPStatus

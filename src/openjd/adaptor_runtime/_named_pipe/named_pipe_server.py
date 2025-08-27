@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from .._named_pipe import ResourceRequestHandler
 from .._osname import OSName
 
-import win32pipe
 import win32file
 import pywintypes
 import winerror

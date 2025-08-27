@@ -10,7 +10,6 @@ import threading
 if OSName.is_windows():
     import pywintypes
     import win32file
-    import win32pipe
     import win32security
     import win32api
     from openjd.adaptor_runtime_client.named_pipe.named_pipe_helper import NamedPipeHelper

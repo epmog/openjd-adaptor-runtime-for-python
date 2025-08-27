@@ -7,7 +7,6 @@ import os
 import time
 
 pywintypes = pytest.importorskip("pywintypes")
-win32pipe = pytest.importorskip("win32pipe")
 win32file = pytest.importorskip("win32file")
 winerror = pytest.importorskip("winerror")
 named_pipe_helper = pytest.importorskip(

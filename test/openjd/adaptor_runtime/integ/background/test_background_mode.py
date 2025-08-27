@@ -130,6 +130,7 @@ class TestDaemonMode:
         if OSName.is_windows():
             import pywintypes
             import win32file
+            from openjd.adaptor_runtime_client._win32._named_pipes import CloseHandle
 
             try:
                 handle = win32file.CreateFile(

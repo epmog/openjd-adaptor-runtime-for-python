@@ -10,6 +10,10 @@ from ...adaptor_runtime_client.named_pipe.named_pipe_helper import (
     NamedPipeHelper,
     PipeDisconnectedException,
 )
+from ...adaptor_runtime_client._win32._named_pipes import (
+    CloseHandle,
+    DisconnectNamedPipe,
+)
 import win32pipe
 import win32file
 from pywintypes import HANDLE
@@ -87,8 +91,8 @@ class ResourceRequestHandler(ABC):
             # Flush the pipe to allow the client to read the pipe's contents before disconnecting.
             # Then disconnect the pipe, and close the handle to this pipe instance.
             win32file.FlushFileBuffers(self.pipe_handle)
-            win32pipe.DisconnectNamedPipe(self.pipe_handle)
-            win32file.CloseHandle(self.pipe_handle)
+            DisconnectNamedPipe(self.pipe_handle)
+            CloseHandle(self.pipe_handle)
         except Exception:
             _logger.error(
                 f"Encountered an error while closing the named pipe: {traceback.format_exc()}"

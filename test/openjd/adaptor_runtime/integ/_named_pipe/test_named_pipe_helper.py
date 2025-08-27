@@ -14,6 +14,7 @@ if OSName.is_windows():
     import win32security
     import win32api
     from openjd.adaptor_runtime_client.named_pipe.named_pipe_helper import NamedPipeHelper
+    from openjd.adaptor_runtime_client._win32._named_pipes import CloseHandle, ConnectNamedPipe
 else:
     # Cannot put this on the top of this file or mypy will complain
     pytest.mark.skip(reason="NamedPipe is only implemented in Windows.")
@@ -27,14 +28,14 @@ def pipe_server(pipe_name, message_to_send, return_message):
     A simple pipe server for testing.
     """
     server_handle = NamedPipeHelper.create_named_pipe_server(pipe_name, TIMEOUT_SECONDS)
-    win32pipe.ConnectNamedPipe(server_handle, None)
+    ConnectNamedPipe(server_handle, None)
     received_message = NamedPipeHelper.read_from_pipe(server_handle)
     received_obj = json.loads(received_message)
     assert received_obj["method"] == message_to_send["method"]
     assert received_obj["path"] == message_to_send["path"]
     assert json.loads(received_obj["body"]) == message_to_send["json_body"]
     NamedPipeHelper.write_to_pipe(server_handle, return_message)
-    win32file.CloseHandle(server_handle)
+    CloseHandle(server_handle)
 
 
 @pytest.fixture
@@ -89,7 +90,7 @@ class TestNamedPipeHelper:
             time.sleep(1)
 
         # THEN
-        win32file.CloseHandle(server_handle)
+        CloseHandle(server_handle)
         assert is_existed
 
     @pytest.mark.skipif(
@@ -125,7 +126,7 @@ class TestNamedPipeHelper:
         win32security.RevertToSelf()
 
         # Close the token handle
-        win32api.CloseHandle(token_handle)
+        CloseHandle(token_handle)
 
         # Send a message to unblock the I/O
         NamedPipeHelper.send_named_pipe_request(PIPE_NAME, TIMEOUT_SECONDS, **message_to_send)

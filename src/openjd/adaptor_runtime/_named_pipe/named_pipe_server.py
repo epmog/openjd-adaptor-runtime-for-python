@@ -18,6 +18,12 @@ from ...adaptor_runtime_client.named_pipe.named_pipe_helper import (
     NamedPipeTimeoutError,
 )
 
+from ...adaptor_runtime_client._win32._named_pipes import (
+    CloseHandle,
+    ConnectNamedPipe,
+    DisconnectNamedPipe,
+)
+
 if TYPE_CHECKING:
     from .._named_pipe import ResourceRequestHandler
 from .._osname import OSName
@@ -114,7 +120,7 @@ class NamedPipeServer(ABC):
             _logger.debug("Waiting for connection from the client...")
 
             try:
-                win32pipe.ConnectNamedPipe(pipe_handle, None)
+                ConnectNamedPipe(pipe_handle, None)
             except pywintypes.error as e:
                 if e.winerror == winerror.ERROR_PIPE_NOT_CONNECTED:
                     _logger.info(
@@ -155,8 +161,8 @@ class NamedPipeServer(ABC):
         while self._named_pipe_instances:
             pipe_handle = self._named_pipe_instances.pop()
             try:
-                win32pipe.DisconnectNamedPipe(pipe_handle)
-                win32file.CloseHandle(pipe_handle)
+                DisconnectNamedPipe(pipe_handle)
+                CloseHandle(pipe_handle)
             except pywintypes.error as e:
                 # If the communication is finished then handler may be closed
                 if e.args[0] == winerror.ERROR_INVALID_HANDLE:

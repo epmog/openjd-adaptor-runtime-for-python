@@ -40,34 +40,8 @@ class OVERLAPPED(ctypes.Structure):
         ("hEvent", HANDLE),
     ]
 
-# ---------
-# From: Kernel32.dll
-# ---------
-kernel32 = ctypes.WinDLL("Kernel32.dll")
-
-# https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
-kernel32.ReadFile.restype = BOOL
-kernel32.ReadFile.argtypes = [
-    HANDLE,  # [in] hFile
-    LPVOID,  # [out] lpBuffer
-    DWORD,   # [in] nNumberOfBytesToRead
-    LPDWORD, # [out, optional] lpNumberOfBytesRead
-    POINTER(OVERLAPPED), # [in, out, optional] lpOverlapped
-]
-
-# https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile
-kernel32.WriteFile.restype = BOOL
-kernel32.WriteFile.argtypes = [
-    HANDLE,  # [in] hFile
-    LPVOID,  # [in] lpBuffer
-    DWORD,   # [in] nNumberOfBytesToWrite
-    LPDWORD, # [out, optional] lpNumberOfBytesWritten
-    POINTER(OVERLAPPED), # [in, out, optional] lpOverlapped
-]
-
-# https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
-kernel32.GetLastError.restype = DWORD
-kernel32.GetLastError.argtypes = []
+# Import shared kernel32 instance
+from ._kernel32 import kernel32
 
 
 def ReadFile(handle: HANDLE, buffer_size: int) -> tuple[int, bytes]:

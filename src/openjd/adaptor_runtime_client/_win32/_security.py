@@ -298,14 +298,8 @@ advapi32.InitializeAcl.argtypes = [
     DWORD,  # [in] dwAclRevision
 ]
 
-# ---------
-# From: Kernel32.dll
-# ---------
-kernel32 = ctypes.WinDLL("Kernel32.dll")
-
-# https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-localfree
-kernel32.LocalFree.restype = ctypes.c_void_p
-kernel32.LocalFree.argtypes = [ctypes.c_void_p]  # [in] hMem
+# Import shared kernel32 instance
+from ._kernel32 import kernel32
 
 # =======================
 # High-Level Functions

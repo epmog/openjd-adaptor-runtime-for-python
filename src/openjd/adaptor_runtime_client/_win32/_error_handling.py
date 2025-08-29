@@ -200,38 +200,8 @@ ERROR_NO_MORE_ITEMS = 259
 # Windows API Functions
 # =======================
 
-# ---------
-# From: Kernel32.dll
-# ---------
-kernel32 = ctypes.WinDLL("Kernel32.dll")
-
-# https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
-kernel32.GetLastError.restype = DWORD
-kernel32.GetLastError.argtypes = []
-
-# https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagea
-kernel32.FormatMessageA.restype = DWORD
-kernel32.FormatMessageA.argtypes = [
-    DWORD,  # [in] dwFlags
-    ctypes.c_void_p,  # [in, optional] lpSource
-    DWORD,  # [in] dwMessageId
-    DWORD,  # [in] dwLanguageId
-    LPSTR,  # [out] lpBuffer
-    DWORD,  # [in] nSize
-    ctypes.c_void_p,  # [in, optional] Arguments
-]
-
-# https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagew
-kernel32.FormatMessageW.restype = DWORD
-kernel32.FormatMessageW.argtypes = [
-    DWORD,  # [in] dwFlags
-    ctypes.c_void_p,  # [in, optional] lpSource
-    DWORD,  # [in] dwMessageId
-    DWORD,  # [in] dwLanguageId
-    LPWSTR,  # [out] lpBuffer
-    DWORD,  # [in] nSize
-    ctypes.c_void_p,  # [in, optional] Arguments
-]
+# Import shared kernel32 instance
+from ._kernel32 import kernel32
 
 # FormatMessage flags
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagea

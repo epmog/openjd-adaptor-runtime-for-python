@@ -22,12 +22,27 @@ from .._win32._named_pipes import (
     CloseHandle,
     CreateFileA,
     CreateNamedPipeA,
+    SetNamedPipeHandleState,
     GENERIC_READ,
     GENERIC_WRITE,
+    INVALID_HANDLE_VALUE,
     OPEN_EXISTING,
     PIPE_ACCESS_DUPLEX,
     PIPE_TYPE_MESSAGE,
     PIPE_READMODE_MESSAGE,
+    PIPE_WAIT,
+    ERROR_FILE_NOT_FOUND,
+    ERROR_BROKEN_PIPE,
+    ERROR_PIPE_NOT_CONNECTED,
+    ERROR_PIPE_BUSY,
+    ERROR_INVALID_HANDLE,
+)
+from .._win32._file_operations import (
+    ReadFile,
+    WriteFile,
+    ERROR_MORE_DATA,
+    NO_ERROR,
+)
     PIPE_WAIT,
     SetNamedPipeHandleState,
 )
@@ -203,7 +218,7 @@ class NamedPipeHelper:
             time_out_in_seconds,
             None #TODO: NamedPipeHelper.create_security_attributes(),
         )
-        if pipe_handle == win32file.INVALID_HANDLE_VALUE:
+        if pipe_handle == INVALID_HANDLE_VALUE:
             return None
         return pipe_handle
 
@@ -219,9 +234,9 @@ class NamedPipeHelper:
             PipeDisconnectedException: When the pipe is disconnected, broken, or invalid.
         """
         if e.winerror in [
-            winerror.ERROR_BROKEN_PIPE,
-            winerror.ERROR_PIPE_NOT_CONNECTED,
-            winerror.ERROR_INVALID_HANDLE,
+            ERROR_BROKEN_PIPE,
+            ERROR_PIPE_NOT_CONNECTED,
+            ERROR_INVALID_HANDLE,
         ]:
             raise PipeDisconnectedException(e)
         else:
@@ -240,11 +255,11 @@ class NamedPipeHelper:
         data_parts: List[str] = []
         while True:
             try:
-                return_code, data = win32file.ReadFile(handle, NAMED_PIPE_BUFFER_SIZE)
+                return_code, data = ReadFile(handle, NAMED_PIPE_BUFFER_SIZE)
                 data_parts.append(data.decode("utf-8"))
-                if return_code == winerror.ERROR_MORE_DATA:
+                if return_code == ERROR_MORE_DATA:
                     continue
-                elif return_code == winerror.NO_ERROR:
+                elif return_code == NO_ERROR:
                     return data_parts
                 else:
                     raise IOError(
@@ -294,7 +309,7 @@ class NamedPipeHelper:
 
         """
         try:
-            win32file.WriteFile(handle, message.encode("utf-8"))
+            WriteFile(handle, message.encode("utf-8"))
         # Server maybe shutdown during writing.
         except pywintypes.error as e:
             NamedPipeHelper._handle_pipe_exception(e)
@@ -327,20 +342,20 @@ class NamedPipeHelper:
         handle = None
         while handle is None:
             try:
-                handle = win32file.CreateFile(
-                    pipe_name,  # pipe name
+                handle = CreateFileA(
+                    pipe_name.encode("ascii"),  # pipe name
                     # Give the read / write permission
-                    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                    GENERIC_READ | GENERIC_WRITE,
                     0,  # Disable the sharing Mode
                     None, # TODO: NamedPipeHelper.create_security_attributes(),
-                    win32file.OPEN_EXISTING,  # Open existing pipe
+                    OPEN_EXISTING,  # Open existing pipe
                     0,  # No Additional flags
                     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
                 )
             except pywintypes.error as e:
                 # NamedPipe server may be not ready,
                 # or no additional resource to create new instance and need to wait for previous connection release
-                if e.winerror in [winerror.ERROR_FILE_NOT_FOUND, winerror.ERROR_PIPE_BUSY]:
+                if e.winerror in [ERROR_FILE_NOT_FOUND, ERROR_PIPE_BUSY]:
                     duration = time.time() - start_time
                     time.sleep(0.1)
                     # Check timeout limit
@@ -358,10 +373,9 @@ class NamedPipeHelper:
         # distinct message. For example, a single write operation like "Hello from client." will be read
         # entirely in one request, avoiding partial reads like "Hello fr".
         mode = ctypes.wintypes.DWORD(PIPE_READMODE_MESSAGE)
-        import win32pipe
-        win32pipe.SetNamedPipeHandleState(
+        SetNamedPipeHandleState(
             handle,  # The handle to the named pipe.
-            win32pipe.PIPE_READMODE_MESSAGE, #ctypes.byref(mode),  # Set the pipe to message mode
+            ctypes.byref(mode),  # Set the pipe to message mode
             # Maximum bytes collected before transmission to the server.
             # 'None' means the system's default value is used.
             None,
@@ -437,18 +451,18 @@ class NamedPipeHelper:
             bool: True if the pipe exists, False otherwise.
         """
         try:
-            handle = win32file.CreateFile(
-                pipe_name,
-                win32file.GENERIC_READ,
+            handle = CreateFileA(
+                pipe_name.encode("ascii"),
+                GENERIC_READ,
                 0,  # Disable the sharing Mode
                 None,  # Don't need any security attributes
-                win32file.OPEN_EXISTING,  # Open existing pipe
+                OPEN_EXISTING,  # Open existing pipe
                 0,  # No Additional flags
                 None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
             )
             handle.close()
         except pywintypes.error as e:
-            if e.winerror == winerror.ERROR_FILE_NOT_FOUND:
+            if e.winerror == ERROR_FILE_NOT_FOUND:
                 return False
         return True
 

@@ -32,6 +32,16 @@ assert sys.platform == "win32"
 # Constants
 # =======================
 
+# Ref: https://learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types
+INVALID_HANDLE_VALUE = -1
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-999-
+ERROR_FILE_NOT_FOUND = 2
+ERROR_BROKEN_PIPE = 109
+ERROR_PIPE_NOT_CONNECTED = 233
+ERROR_PIPE_BUSY = 231
+ERROR_INVALID_HANDLE = 6
+
 # Ref: https://learn.microsoft.com/en-us/windows/win32/secauthz/generic-access-rights
 GENERIC_WRITE = 0x40000000
 GENERIC_READ = 0x80000000
@@ -67,7 +77,7 @@ class OVERLAPPED(ctypes.Structure):
 # ---------
 # From: Kernel32.dll
 # ---------
-kernel32 = ctypes.WinDLL("Kernel32.dll")
+kernel32 = ctypes.windll.kernel32
 
 # https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
 kernel32.CloseHandle.restype = BOOL
@@ -127,3 +137,26 @@ CreateFileA = kernel32.CreateFileA
 CreateNamedPipeA = kernel32.CreateNamedPipeA
 DisconnectNamedPipe = kernel32.DisconnectNamedPipe
 SetNamedPipeHandleState = kernel32.SetNamedPipeHandleState
+
+# Export constants
+__all__ = [
+    "CloseHandle",
+    "ConnectNamedPipe", 
+    "CreateFileA",
+    "CreateNamedPipeA",
+    "DisconnectNamedPipe",
+    "SetNamedPipeHandleState",
+    "INVALID_HANDLE_VALUE",
+    "ERROR_FILE_NOT_FOUND",
+    "ERROR_BROKEN_PIPE", 
+    "ERROR_PIPE_NOT_CONNECTED",
+    "ERROR_PIPE_BUSY",
+    "ERROR_INVALID_HANDLE",
+    "GENERIC_WRITE",
+    "GENERIC_READ",
+    "OPEN_EXISTING",
+    "PIPE_ACCESS_DUPLEX",
+    "PIPE_TYPE_MESSAGE",
+    "PIPE_READMODE_MESSAGE",
+    "PIPE_WAIT",
+]

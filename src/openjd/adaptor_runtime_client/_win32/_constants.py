@@ -200,6 +200,25 @@ ERROR_NONE_MAPPED = 1332
 ERROR_INVALID_SID = 1337
 
 # =======================
+# Logon Constants
+# =======================
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonusera
+LOGON32_LOGON_INTERACTIVE = 2
+LOGON32_LOGON_NETWORK = 3
+LOGON32_LOGON_BATCH = 4
+LOGON32_LOGON_SERVICE = 5
+LOGON32_LOGON_UNLOCK = 7
+LOGON32_LOGON_NETWORK_CLEARTEXT = 8
+LOGON32_LOGON_NEW_CREDENTIALS = 9
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonusera
+LOGON32_PROVIDER_DEFAULT = 0
+LOGON32_PROVIDER_WINNT35 = 1
+LOGON32_PROVIDER_WINNT40 = 2
+LOGON32_PROVIDER_WINNT50 = 3
+
+# =======================
 # Handle Constants
 # =======================
 
@@ -341,6 +360,19 @@ __all__ = [
     'ERROR_NO_MORE_ITEMS',
     'ERROR_NONE_MAPPED',
     'ERROR_INVALID_SID',
+    
+    # Logon constants
+    'LOGON32_LOGON_INTERACTIVE',
+    'LOGON32_LOGON_NETWORK',
+    'LOGON32_LOGON_BATCH',
+    'LOGON32_LOGON_SERVICE',
+    'LOGON32_LOGON_UNLOCK',
+    'LOGON32_LOGON_NETWORK_CLEARTEXT',
+    'LOGON32_LOGON_NEW_CREDENTIALS',
+    'LOGON32_PROVIDER_DEFAULT',
+    'LOGON32_PROVIDER_WINNT35',
+    'LOGON32_PROVIDER_WINNT40',
+    'LOGON32_PROVIDER_WINNT50',
     
     # Handle constants
     'INVALID_HANDLE_VALUE',

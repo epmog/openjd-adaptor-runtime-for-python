@@ -6,7 +6,7 @@ import logging
 from threading import Event
 from typing import cast
 
-from pywintypes import HANDLE
+from ctypes.wintypes import HANDLE
 
 
 from .background_named_pipe_request_handler import WinBackgroundResourceRequestHandler

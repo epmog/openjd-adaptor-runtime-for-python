@@ -38,7 +38,7 @@ _FRONTEND_RUNNER_REQUEST_TIMEOUT: float = 5.0
 
 if OSName.is_windows():
     from ...adaptor_runtime_client.named_pipe.named_pipe_helper import NamedPipeHelper
-    import pywintypes
+    from ...adaptor_runtime_client._win32._error_handling import WindowsError
 
 _logger = logging.getLogger(__name__)
 
@@ -349,7 +349,7 @@ class FrontendRunner:
                     errmsg = f"Received unexpected HTTP status code {status}: {response['body']}"
                     _logger.error(errmsg)
                     raise HTTPError(response, errmsg)
-            except pywintypes.error as e:
+            except WindowsError as e:
                 _logger.error(f"Failed to send {path} request: {e}")
                 raise
             return response

@@ -10,7 +10,7 @@ if TYPE_CHECKING:  # pragma: no cover because pytest will think we should test f
 
 from openjd.adaptor_runtime._background.server_response import ServerResponseGenerator
 
-from pywintypes import HANDLE
+from ctypes.wintypes import HANDLE
 import logging
 
 _logger = logging.getLogger(__name__)

@@ -8,12 +8,11 @@ import pytest
 import threading
 
 if OSName.is_windows():
-    import pywintypes
-    import win32file
-    import win32security
-    import win32api
     from openjd.adaptor_runtime_client.named_pipe.named_pipe_helper import NamedPipeHelper
     from openjd.adaptor_runtime_client._win32._named_pipes import CloseHandle, ConnectNamedPipe
+    from openjd.adaptor_runtime_client._win32._security import LogonUser, ImpersonateLoggedOnUser, RevertToSelf
+    from openjd.adaptor_runtime_client._win32._constants import LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT
+    from openjd.adaptor_runtime_client._win32._error_handling import WindowsError
 else:
     # Cannot put this on the top of this file or mypy will complain
     pytest.mark.skip(reason="NamedPipe is only implemented in Windows.")
@@ -106,23 +105,23 @@ class TestNamedPipeHelper:
         """
         # GIVEN
         user_name, password = win_test_user
-        logon_type = win32security.LOGON32_LOGON_INTERACTIVE
-        provider = win32security.LOGON32_PROVIDER_DEFAULT
+        logon_type = LOGON32_LOGON_INTERACTIVE
+        provider = LOGON32_PROVIDER_DEFAULT
         message_to_send, expected_response = start_pipe_server
 
         # WHEN
         # Log on with the user's credentials and get the token handle
-        token_handle = win32security.LogonUser(user_name, "", password, logon_type, provider)
+        token_handle = LogonUser(user_name, "", password, logon_type, provider)
         # Impersonate the user
-        win32security.ImpersonateLoggedOnUser(token_handle)
+        ImpersonateLoggedOnUser(token_handle)
 
         # THEN
-        with pytest.raises(pywintypes.error) as excinfo:
+        with pytest.raises(WindowsError) as excinfo:
             NamedPipeHelper.send_named_pipe_request(PIPE_NAME, TIMEOUT_SECONDS, **message_to_send)
             assert "Access is denied" in str(excinfo.value)
 
         # Revert the impersonation
-        win32security.RevertToSelf()
+        RevertToSelf()
 
         # Close the token handle
         CloseHandle(token_handle)

@@ -820,9 +820,9 @@ class TestFrontendRunner:
             caplog: pytest.LogCaptureFixture,
         ):
             # GIVEN
-            import pywintypes
+            from openjd.adaptor_runtime_client._win32._error_handling import WindowsError
 
-            error_instance = pywintypes.error(1, "FunctionName", "An error message")
+            error_instance = WindowsError(1, "FunctionName", "An error message")
             mock_read_from_pipe.side_effect = error_instance
             method = "GET"
             path = "/path"
@@ -834,7 +834,7 @@ class TestFrontendRunner:
                 with patch.object(
                     frontend_runner.NamedPipeHelper, "establish_named_pipe_connection"
                 ) as mock_establish_named_pipe_connection:
-                    with pytest.raises(pywintypes.error) as raised_exc:
+                    with pytest.raises(WindowsError) as raised_exc:
                         runner._send_request(method, path)
 
             # THEN

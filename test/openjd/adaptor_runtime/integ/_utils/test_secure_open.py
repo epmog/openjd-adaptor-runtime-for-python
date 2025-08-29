@@ -10,7 +10,8 @@ import string
 from openjd.adaptor_runtime._utils import secure_open
 
 if OSName.is_windows():
-    import win32security
+    from openjd.adaptor_runtime_client._win32._security import LogonUser, ImpersonateLoggedOnUser, RevertToSelf
+    from openjd.adaptor_runtime_client._win32._constants import LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT
 
 
 @pytest.fixture
@@ -51,13 +52,13 @@ class TestSecureOpen:
         """
         test_file_path, file_content = create_file
         user_name, password = win_test_user
-        logon_type = win32security.LOGON32_LOGON_INTERACTIVE
-        provider = win32security.LOGON32_PROVIDER_DEFAULT
+        logon_type = LOGON32_LOGON_INTERACTIVE
+        provider = LOGON32_PROVIDER_DEFAULT
 
         # Log on with the user's credentials and get the token handle
-        token_handle = win32security.LogonUser(user_name, "", password, logon_type, provider)
+        token_handle = LogonUser(user_name, "", password, logon_type, provider)
         # Impersonate the user
-        win32security.ImpersonateLoggedOnUser(token_handle)
+        ImpersonateLoggedOnUser(token_handle)
 
         try:
             with pytest.raises(PermissionError):
@@ -65,4 +66,4 @@ class TestSecureOpen:
                     f.read()
         finally:
             # Revert the impersonation
-            win32security.RevertToSelf()
+            RevertToSelf()

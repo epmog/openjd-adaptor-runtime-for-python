@@ -298,6 +298,27 @@ advapi32.InitializeAcl.argtypes = [
     DWORD,  # [in] dwAclRevision
 ]
 
+# https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonusera
+advapi32.LogonUserA.restype = BOOL
+advapi32.LogonUserA.argtypes = [
+    LPCSTR,  # [in] lpszUsername
+    LPCSTR,  # [in, optional] lpszDomain
+    LPCSTR,  # [in] lpszPassword
+    DWORD,   # [in] dwLogonType
+    DWORD,   # [in] dwLogonProvider
+    POINTER(HANDLE),  # [out] phToken
+]
+
+# https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-impersonateloggedonuser
+advapi32.ImpersonateLoggedOnUser.restype = BOOL
+advapi32.ImpersonateLoggedOnUser.argtypes = [
+    HANDLE,  # [in] hToken
+]
+
+# https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-reverttoself
+advapi32.RevertToSelf.restype = BOOL
+advapi32.RevertToSelf.argtypes = []
+
 # Import shared kernel32 instance
 from ._kernel32 import kernel32
 
@@ -687,6 +708,82 @@ def AddAccessDeniedAce(acl_bytes: bytes, ace_revision: int, access_mask: int, si
     
     return acl_buffer.raw
 
+
+def LogonUser(username: str, domain: str, password: str, logon_type: int, logon_provider: int) -> HANDLE:
+    """
+    Log on a user and return a handle to the user token.
+    
+    This function replaces win32security.LogonUser with equivalent ctypes functionality.
+    
+    Args:
+        username: The name of the user
+        domain: The name of the domain (can be empty string for local account)
+        password: The password for the user
+        logon_type: The type of logon operation (e.g., LOGON32_LOGON_INTERACTIVE)
+        logon_provider: The logon provider (e.g., LOGON32_PROVIDER_DEFAULT)
+        
+    Returns:
+        HANDLE: A handle to the user token
+        
+    Raises:
+        WindowsError: If the logon operation fails
+    """
+    token_handle = HANDLE()
+    
+    # Call LogonUserA
+    # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonusera
+    result = advapi32.LogonUserA(
+        username.encode('utf-8'),
+        domain.encode('utf-8') if domain else None,
+        password.encode('utf-8'),
+        logon_type,
+        logon_provider,
+        ctypes.byref(token_handle)
+    )
+    
+    if not result:
+        raise_windows_error("LogonUser")
+    
+    return token_handle
+
+
+def ImpersonateLoggedOnUser(token_handle: HANDLE) -> None:
+    """
+    Impersonate a logged-on user.
+    
+    This function replaces win32security.ImpersonateLoggedOnUser with equivalent ctypes functionality.
+    
+    Args:
+        token_handle: A handle to the user token
+        
+    Raises:
+        WindowsError: If the impersonation fails
+    """
+    # Call ImpersonateLoggedOnUser
+    # Ref: https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-impersonateloggedonuser
+    result = advapi32.ImpersonateLoggedOnUser(token_handle)
+    
+    if not result:
+        raise_windows_error("ImpersonateLoggedOnUser")
+
+
+def RevertToSelf() -> None:
+    """
+    Revert to the original security context.
+    
+    This function replaces win32security.RevertToSelf with equivalent ctypes functionality.
+    
+    Raises:
+        WindowsError: If reverting to self fails
+    """
+    # Call RevertToSelf
+    # Ref: https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-reverttoself
+    result = advapi32.RevertToSelf()
+    
+    if not result:
+        raise_windows_error("RevertToSelf")
+
+
 # =======================
 # Exports
 # =======================
@@ -714,6 +811,9 @@ __all__ = [
     'InitializeAcl',
     'AddAccessAllowedAce',
     'AddAccessDeniedAce',
+    'LogonUser',
+    'ImpersonateLoggedOnUser',
+    'RevertToSelf',
     # Constants
     'ACL_REVISION',
     'ACL_REVISION_DS',

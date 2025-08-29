@@ -128,22 +128,22 @@ class TestDaemonMode:
         connection_settings = ConnectionSettingsFileLoader(connection_file_path).load()
 
         if OSName.is_windows():
-            import pywintypes
-            import win32file
-            from openjd.adaptor_runtime_client._win32._named_pipes import CloseHandle
+            from openjd.adaptor_runtime_client._win32._named_pipes import CloseHandle, CreateFileA
+            from openjd.adaptor_runtime_client._win32._constants import GENERIC_READ, OPEN_EXISTING
+            from openjd.adaptor_runtime_client._win32._error_handling import WindowsError
 
             try:
-                handle = win32file.CreateFile(
-                    connection_settings.socket,
-                    win32file.GENERIC_READ,
+                handle = CreateFileA(
+                    connection_settings.socket.encode('utf-8'),
+                    GENERIC_READ,
                     0,  # No sharing
                     None,  # Default security
-                    win32file.OPEN_EXISTING,
+                    OPEN_EXISTING,
                     0,  # Default attributes
                     None,  # No template file
                 )
-                win32file.CloseHandle(handle)
-            except pywintypes.error as e:
+                CloseHandle(handle)
+            except WindowsError as e:
                 # If an error occurred, it means the pipe does not exist
                 assert False, f"Named pipe is not created successfully. Fail to connect to it: {e}"
 

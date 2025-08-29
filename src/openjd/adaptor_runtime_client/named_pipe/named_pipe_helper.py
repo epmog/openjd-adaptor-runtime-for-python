@@ -38,6 +38,9 @@ from .._win32._file_operations import (
     ERROR_MORE_DATA,
     NO_ERROR,
 )
+from .._win32._error_handling import (
+    WindowsError,
+)
 
 from .named_pipe_config import (
     NAMED_PIPE_BUFFER_SIZE,
@@ -197,7 +200,10 @@ class NamedPipeHelper:
         ]:
             raise PipeDisconnectedException(winerror, funcname)
         else:
-            raise OSError(f"Windows error {winerror} in {funcname}")
+            # Import here to get the error message formatting
+            from .._win32._error_handling import FormatMessage
+            error_message = FormatMessage(winerror)
+            raise WindowsError(winerror, funcname, error_message)
 
     @staticmethod
     def read_from_pipe_target(handle: HANDLE):
@@ -223,7 +229,7 @@ class NamedPipeHelper:
                         f"Got error when reading from the Named Pipe with error code: {return_code}"
                     )
             # Server maybe shutdown during reading.
-            except OSError as e:
+            except (OSError, WindowsError) as e:
                 # Handle Windows API errors from our ctypes functions
                 if hasattr(e, 'winerror'):
                     NamedPipeHelper._handle_pipe_exception(e.winerror, "ReadFile")
@@ -272,7 +278,7 @@ class NamedPipeHelper:
         try:
             WriteFile(handle, message.encode("utf-8"))
         # Server maybe shutdown during writing.
-        except OSError as e:
+        except (OSError, WindowsError) as e:
             # Handle Windows API errors from our ctypes functions
             if hasattr(e, 'winerror'):
                 NamedPipeHelper._handle_pipe_exception(e.winerror, "WriteFile")
@@ -317,7 +323,7 @@ class NamedPipeHelper:
                     0,  # No Additional flags
                     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
                 )
-            except OSError as e:
+            except (OSError, WindowsError) as e:
                 # NamedPipe server may be not ready,
                 # or no additional resource to create new instance and need to wait for previous connection release
                 winerror = getattr(e, 'winerror', 0)
@@ -427,7 +433,7 @@ class NamedPipeHelper:
                 None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
             )
             CloseHandle(handle)
-        except OSError as e:
+        except (OSError, WindowsError) as e:
             winerror = getattr(e, 'winerror', 0)
             if winerror == ERROR_FILE_NOT_FOUND:
                 return False

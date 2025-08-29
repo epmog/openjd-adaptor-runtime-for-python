@@ -84,6 +84,12 @@ kernel32.WriteFile.argtypes = [
     ctypes.c_void_p, # [in, out, optional] lpOverlapped (simplified)
 ]
 
+# https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers
+kernel32.FlushFileBuffers.restype = BOOL
+kernel32.FlushFileBuffers.argtypes = [
+    HANDLE,  # [in] hFile
+]
+
 # https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-localfree
 kernel32.LocalFree.restype = ctypes.c_void_p
 kernel32.LocalFree.argtypes = [ctypes.c_void_p]

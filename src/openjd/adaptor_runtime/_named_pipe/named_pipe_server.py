@@ -28,12 +28,16 @@ if TYPE_CHECKING:
     from .._named_pipe import ResourceRequestHandler
 from .._osname import OSName
 
-import win32file
-import pywintypes
-import winerror
-import win32api
-
-from pywintypes import HANDLE
+from ...adaptor_runtime_client._win32._error_handling import (
+    WindowsError,
+    GetLastError,
+    FormatMessage,
+)
+from ...adaptor_runtime_client._win32._constants import (
+    ERROR_PIPE_NOT_CONNECTED,
+    ERROR_INVALID_HANDLE,
+)
+from ctypes.wintypes import HANDLE
 
 from abc import ABC, abstractmethod
 
@@ -111,7 +115,7 @@ class NamedPipeServer(ABC):
             if pipe_handle is None:
                 error_msg = (
                     f"Failed to create named pipe instance: "
-                    f"{win32api.FormatMessage(win32api.GetLastError())}"
+                    f"{FormatMessage(GetLastError())}"
                 )
                 _logger.error(error_msg)
                 raise RuntimeError(error_msg)
@@ -120,8 +124,8 @@ class NamedPipeServer(ABC):
 
             try:
                 ConnectNamedPipe(pipe_handle, None)
-            except pywintypes.error as e:
-                if e.winerror == winerror.ERROR_PIPE_NOT_CONNECTED:
+            except WindowsError as e:
+                if e.winerror == ERROR_PIPE_NOT_CONNECTED:
                     _logger.info(
                         "NamedPipe Server is shutdown. Exit the main thread in the backend server."
                     )
@@ -162,9 +166,9 @@ class NamedPipeServer(ABC):
             try:
                 DisconnectNamedPipe(pipe_handle)
                 CloseHandle(pipe_handle)
-            except pywintypes.error as e:
+            except WindowsError as e:
                 # If the communication is finished then handler may be closed
-                if e.args[0] == winerror.ERROR_INVALID_HANDLE:
+                if e.winerror == ERROR_INVALID_HANDLE:
                     pass
             except Exception as e:
                 import traceback

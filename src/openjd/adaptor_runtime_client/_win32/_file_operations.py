@@ -123,10 +123,32 @@ def WriteFile(handle: HANDLE, data: bytes) -> int:
         raise OSError(f"WriteFile failed with error code: {error_code}")
 
 
+def FlushFileBuffers(handle: HANDLE) -> None:
+    """
+    Flush file buffers using ctypes implementation of FlushFileBuffers.
+    
+    This function replaces win32file.FlushFileBuffers with equivalent ctypes functionality.
+    
+    Args:
+        handle: The file handle to flush
+        
+    Raises:
+        OSError: If the FlushFileBuffers operation fails
+    """
+    # Call FlushFileBuffers
+    # Ref: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers
+    success = kernel32.FlushFileBuffers(handle)
+    
+    if not success:
+        error_code = kernel32.GetLastError()
+        raise OSError(f"FlushFileBuffers failed with error code: {error_code}")
+
+
 # exports
 __all__ = [
     "ReadFile",
-    "WriteFile", 
+    "WriteFile",
+    "FlushFileBuffers",
     "ERROR_MORE_DATA",
     "NO_ERROR",
 ]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from threading import Event
-from pywintypes import HANDLE
+from ctypes.wintypes import HANDLE
 
 from ._named_pipe_request_handler import WinAdaptorServerResourceRequestHandler
 from .._named_pipe import ResourceRequestHandler

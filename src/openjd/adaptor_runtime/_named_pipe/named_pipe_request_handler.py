@@ -14,8 +14,10 @@ from ...adaptor_runtime_client._win32._named_pipes import (
     CloseHandle,
     DisconnectNamedPipe,
 )
-import win32file
-from pywintypes import HANDLE
+from ...adaptor_runtime_client._win32._file_operations import (
+    FlushFileBuffers,
+)
+from ctypes.wintypes import HANDLE
 from http import HTTPStatus
 import logging
 import traceback
@@ -89,7 +91,7 @@ class ResourceRequestHandler(ABC):
         try:
             # Flush the pipe to allow the client to read the pipe's contents before disconnecting.
             # Then disconnect the pipe, and close the handle to this pipe instance.
-            win32file.FlushFileBuffers(self.pipe_handle)
+            FlushFileBuffers(self.pipe_handle)
             DisconnectNamedPipe(self.pipe_handle)
             CloseHandle(self.pipe_handle)
         except Exception:

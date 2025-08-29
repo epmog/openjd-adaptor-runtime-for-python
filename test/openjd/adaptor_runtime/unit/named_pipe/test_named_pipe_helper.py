@@ -6,19 +6,22 @@ import pytest
 import os
 import time
 
-pywintypes = pytest.importorskip("pywintypes")
-win32file = pytest.importorskip("win32file")
-winerror = pytest.importorskip("winerror")
 named_pipe_helper = pytest.importorskip(
     "openjd.adaptor_runtime_client.named_pipe.named_pipe_helper"
 )
+# Import our ctypes implementations (Windows only)
+if OSName.is_windows():
+    from ctypes.wintypes import HANDLE
+    from openjd.adaptor_runtime_client._win32._error_handling import WindowsError
+    from openjd.adaptor_runtime_client._win32._constants import NO_ERROR, ERROR_FILE_NOT_FOUND
+    from openjd.adaptor_runtime_client._win32._named_pipes import CreateFileA
 
 
 class MockReadFile:
     @staticmethod
-    def ReadFile(handle: pywintypes.HANDLE, timeout_in_seconds: float):  # type: ignore[name-defined]
+    def ReadFile(handle: HANDLE, timeout_in_seconds: float):
         time.sleep(10)
-        return winerror.NO_ERROR, bytes("fake_data", "utf-8")
+        return NO_ERROR, bytes("fake_data", "utf-8")
 
 
 @pytest.mark.skipif(not OSName.is_windows(), reason="Windows-specific tests")
@@ -44,22 +47,22 @@ class TestNamedPipeHelper:
             raise named_pipe_helper.NamedPipeConnectTimeoutError(1.0, exception_during_connect)
 
     @patch.object(
-        win32file, "CreateFile", side_effect=win32file.error(winerror.ERROR_FILE_NOT_FOUND)
+        named_pipe_helper._win32._named_pipes, "CreateFileA", side_effect=WindowsError(ERROR_FILE_NOT_FOUND, "CreateFileA", "The system cannot find the file specified.")
     )
-    def test_establish_named_pipe_connection_timeout_raises_exception(self, mock_win32file):
+    def test_establish_named_pipe_connection_timeout_raises_exception(self, mock_create_file):
         with pytest.raises(
             named_pipe_helper.NamedPipeConnectTimeoutError,
             match=os.linesep.join(
                 [
                     "NamedPipe Server connect timeout after \\d\\.\\d+ seconds.",
-                    f"Original error: {win32file.error(winerror.ERROR_FILE_NOT_FOUND)}",
+                    f"Original error: {WindowsError(ERROR_FILE_NOT_FOUND, 'CreateFileA', 'The system cannot find the file specified.')}",
                 ]
             ),
         ):
             named_pipe_helper.NamedPipeHelper.establish_named_pipe_connection("fakepipe", 1.0)
 
-    @patch.object(win32file, "ReadFile", wraps=MockReadFile.ReadFile)
-    def test_read_from_pipe_timeout_raises_exception(self, mock_win32file):
+    @patch.object(named_pipe_helper._win32._file_operations, "ReadFile", wraps=MockReadFile.ReadFile)
+    def test_read_from_pipe_timeout_raises_exception(self, mock_read_file):
         mock_handle = MagicMock()
         with pytest.raises(
             named_pipe_helper.NamedPipeReadTimeoutError,

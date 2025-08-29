@@ -36,21 +36,21 @@
   - Add named pipe constants not already defined in existing module
   - _Requirements: 2.2_
 
-- [ ] 6. Update named pipe helper error handling
+- [x] 6. Update named pipe helper error handling
   - Replace pywintypes.error with new WindowsError in exception handling
   - Update PipeDisconnectedException to work with new error type
   - Modify _handle_pipe_exception method to use new error constants
   - Test error handling scenarios with new implementation
   - _Requirements: 3.3, 5.3_
 
-- [ ] 7. Replace win32file operations in named pipe helper
+- [x] 7. Replace win32file operations in named pipe helper
   - Replace win32file.ReadFile with new ctypes ReadFile implementation
   - Replace win32file.WriteFile with new ctypes WriteFile implementation
   - Update win32file.CreateFile usage to use existing ctypes CreateFileA
   - Replace win32file constants with new constants module
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 8. Implement named pipe handle state operations
+- [x] 8. Implement named pipe handle state operations
   - Replace win32pipe.SetNamedPipeHandleState with existing ctypes version
   - Remove win32pipe import and update function calls
   - Test named pipe message mode functionality
@@ -63,27 +63,27 @@
   - Test file permission setting and retrieval operations
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 10. Replace win32api operations in named pipe server
+- [x] 10. Replace win32api operations in named pipe server
   - Replace win32api.FormatMessage with new ctypes FormatMessage implementation
   - Replace win32api.GetLastError with new ctypes GetLastError function
   - Update error message formatting in named pipe server
   - _Requirements: 2.1, 2.4_
 
-- [ ] 11. Update all remaining pywin32 imports
+- [x] 11. Update all remaining pywin32 imports
   - Remove all win32file, win32security, win32con, win32api, win32pipe imports
   - Remove pywintypes imports throughout the codebase
   - Replace win32con constants with new constants module
   - Update ntsecuritycon usage in secure_open.py
   - _Requirements: 1.3, 2.1_
 
-- [ ] 12. Update test files to remove pywin32 dependencies
+- [x] 12. Update test files to remove pywin32 dependencies
   - Replace pywintypes imports in test files with new error handling
   - Update win32file, win32security imports in test modules
   - Modify test assertions to work with new error types
   - Ensure all test mocking works with new implementations
   - _Requirements: 5.1, 5.2_
 
-- [ ] 13. Remove pywin32 from project dependencies
+- [x] 13. Remove pywin32 from project dependencies
   - Update pyproject.toml to remove pywin32 dependency
   - Update requirements files if they reference pywin32
   - Update CHANGELOG.md to document pywin32 removal

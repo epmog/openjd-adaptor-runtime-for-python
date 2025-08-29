@@ -10,7 +10,7 @@ from .._named_pipe import ResourceRequestHandler
 if TYPE_CHECKING:  # pragma: no cover because pytest will think we should test for this.
     from ._win_adaptor_server import WinAdaptorServer
 
-from pywintypes import HANDLE
+from ctypes.wintypes import HANDLE
 import logging
 
 _logger = logging.getLogger(__name__)

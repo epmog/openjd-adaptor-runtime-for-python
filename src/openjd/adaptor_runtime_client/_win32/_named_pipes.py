@@ -21,7 +21,7 @@ from ctypes.wintypes import (
     WORD,
 )
 
-from ctypes import POINTER, WinError, byref, c_byte, c_size_t, c_void_p, pointer  # type: ignore
+from ctypes import POINTER, byref, c_byte, c_size_t, c_void_p, pointer  # type: ignore
 from collections.abc import Sequence
 
 # This assertion short-circuits mypy from type checking this module on platforms other than Windows

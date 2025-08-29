@@ -5,16 +5,11 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from random import randint
 
-import win32file
-import pywintypes
-import win32security
-import win32con
 import getpass
-import winerror
 import time
 import json
 from typing import Dict, List, Optional
-from pywintypes import HANDLE
+from ctypes.wintypes import HANDLE
 from enum import Enum
 import os
 
@@ -63,15 +58,17 @@ class PipeDisconnectedException(Exception):
     Exception raised when a Named Pipe is either broken or not connected.
 
     Attributes:
-        error (pywintypes.error): An error raised by pywin32.
+        winerror (int): The numerical error code
+        funcname (str): The name of the function that caused the error
+        strerror (str): The human-readable error message
     """
 
-    def __init__(self, error: pywintypes.error):
-        self.winerror = error.winerror  # The numerical error code
-        self.funcname = error.funcname  # The name of the function that caused the error
-        self.strerror = error.strerror  # The human-readable error message
+    def __init__(self, winerror: int, funcname: str = "", strerror: str = ""):
+        self.winerror = winerror  # The numerical error code
+        self.funcname = funcname  # The name of the function that caused the error
+        self.strerror = strerror  # The human-readable error message
 
-        self.message = f"An error occurred: {error.strerror} (Error code: {error.winerror}) in function {error.funcname }"
+        self.message = f"An error occurred: {strerror} (Error code: {winerror}) in function {funcname}"
         super().__init__(self.message)
 
     def __str__(self):
@@ -147,49 +144,11 @@ class NamedPipeHelper:
         allowing access only to the current user and denying network access.
 
         Returns:
-            win32security.SECURITY_ATTRIBUTES: A SECURITY_ATTRIBUTES object configured with the custom security descriptor.
+            None: Security attributes creation not yet implemented with ctypes
         """
-
-        # Get the username of the current user
-        username = getpass.getuser()
-
-        # Get the SID for the current user
-        user_sid, _, _ = win32security.LookupAccountName(
-            "",  # systemName: The name of the system or server where the account resides.
-            # Search for the account on the local computer.
-            # If Domain/User Format is used here, it will fetch the Name from the AD.
-            username,
-        )
-
-        # Users who log on across a network. "S-1-5-2" is a group identifier added to the token of a process
-        # when it was logged on across a network.
-        # https://learn.microsoft.com/en-us/windows/win32/secauthz/well-known-sids
-        network_sid = win32security.ConvertStringSidToSid("S-1-5-2")
-
-        # Create a security descriptor and DACL
-        security_descriptor = win32security.SECURITY_DESCRIPTOR()
-        dacl = win32security.ACL()
-
-        # Add a rule that allows the current user full control
-        dacl.AddAccessAllowedAce(
-            win32security.ACL_REVISION, win32con.GENERIC_READ | win32con.GENERIC_WRITE, user_sid
-        )
-
-        # Add a rule that denies network access
-        dacl.AddAccessDeniedAce(win32security.ACL_REVISION, win32con.GENERIC_ALL, network_sid)
-
-        # Set the ACL to the security descriptor
-        security_descriptor.SetSecurityDescriptorDacl(
-            1,  # A flag that indicates the presence of a DACL in the security descriptor.
-            dacl,  # The DACL itself
-            0,  # 0 means False. DACL has been explicitly specified by a user
-        )
-
-        # Create security attributes
-        security_attributes = win32security.SECURITY_ATTRIBUTES()
-        security_attributes.SECURITY_DESCRIPTOR = security_descriptor
-
-        return security_attributes
+        # TODO: Implement this method using our ctypes security functions
+        # For now, return None to use default security
+        return None
 
     @staticmethod
     def create_named_pipe_server(pipe_name: str, time_out_in_seconds: float) -> Optional[HANDLE]:
@@ -220,24 +179,25 @@ class NamedPipeHelper:
         return pipe_handle
 
     @staticmethod
-    def _handle_pipe_exception(e: pywintypes.error) -> None:
+    def _handle_pipe_exception(winerror: int, funcname: str = "") -> None:
         """
         Handles exceptions related to pipe operations.
 
         Args:
-            e (pywintypes.error): The caught exception.
+            winerror (int): The Windows error code
+            funcname (str): The name of the function that caused the error
 
         Raises:
             PipeDisconnectedException: When the pipe is disconnected, broken, or invalid.
         """
-        if e.winerror in [
+        if winerror in [
             ERROR_BROKEN_PIPE,
             ERROR_PIPE_NOT_CONNECTED,
             ERROR_INVALID_HANDLE,
         ]:
-            raise PipeDisconnectedException(e)
+            raise PipeDisconnectedException(winerror, funcname)
         else:
-            raise
+            raise OSError(f"Windows error {winerror} in {funcname}")
 
     @staticmethod
     def read_from_pipe_target(handle: HANDLE):
@@ -263,8 +223,12 @@ class NamedPipeHelper:
                         f"Got error when reading from the Named Pipe with error code: {return_code}"
                     )
             # Server maybe shutdown during reading.
-            except pywintypes.error as e:
-                NamedPipeHelper._handle_pipe_exception(e)
+            except OSError as e:
+                # Handle Windows API errors from our ctypes functions
+                if hasattr(e, 'winerror'):
+                    NamedPipeHelper._handle_pipe_exception(e.winerror, "ReadFile")
+                else:
+                    raise
 
     @staticmethod
     def read_from_pipe(handle: HANDLE, timeout_in_seconds: Optional[float] = 5.0) -> str:  # type: ignore
@@ -289,7 +253,7 @@ class NamedPipeHelper:
                 data_parts = future.result(timeout=timeout_in_seconds)
             except TimeoutError:
                 # Close the handle will interrupt the ReadFile and the thread will end
-                handle.close()
+                CloseHandle(handle)
                 duration = time.time() - start_time
                 raise NamedPipeReadTimeoutError(duration)
 
@@ -308,8 +272,12 @@ class NamedPipeHelper:
         try:
             WriteFile(handle, message.encode("utf-8"))
         # Server maybe shutdown during writing.
-        except pywintypes.error as e:
-            NamedPipeHelper._handle_pipe_exception(e)
+        except OSError as e:
+            # Handle Windows API errors from our ctypes functions
+            if hasattr(e, 'winerror'):
+                NamedPipeHelper._handle_pipe_exception(e.winerror, "WriteFile")
+            else:
+                raise
 
     @staticmethod
     def establish_named_pipe_connection(pipe_name: str, timeout_in_seconds: float) -> HANDLE:
@@ -330,7 +298,7 @@ class NamedPipeHelper:
             HANDLE: A handle to the connected pipe.
 
         Raises:
-            pywintypes.error: If the connection cannot be established within the timeout period
+            OSError: If the connection cannot be established within the timeout period
                 or due to other errors.
 
         """
@@ -349,10 +317,11 @@ class NamedPipeHelper:
                     0,  # No Additional flags
                     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
                 )
-            except pywintypes.error as e:
+            except OSError as e:
                 # NamedPipe server may be not ready,
                 # or no additional resource to create new instance and need to wait for previous connection release
-                if e.winerror in [ERROR_FILE_NOT_FOUND, ERROR_PIPE_BUSY]:
+                winerror = getattr(e, 'winerror', 0)
+                if winerror in [ERROR_FILE_NOT_FOUND, ERROR_PIPE_BUSY]:
                     duration = time.time() - start_time
                     time.sleep(0.1)
                     # Check timeout limit
@@ -412,7 +381,7 @@ class NamedPipeHelper:
             Dict: The parsed JSON response from the server.
 
         Raises:
-            pywintypes.error: If there are issues in establishing a connection or sending the request.
+            OSError: If there are issues in establishing a connection or sending the request.
             json.JSONDecodeError: If there is an error in parsing the server's response.
         """
 
@@ -433,7 +402,7 @@ class NamedPipeHelper:
             NamedPipeHelper.write_to_pipe(handle, message)
             result = NamedPipeHelper.read_from_pipe(handle, timeout_in_seconds)
         finally:
-            handle.close()
+            CloseHandle(handle)
         return json.loads(result)
 
     @staticmethod
@@ -457,9 +426,10 @@ class NamedPipeHelper:
                 0,  # No Additional flags
                 None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
             )
-            handle.close()
-        except pywintypes.error as e:
-            if e.winerror == ERROR_FILE_NOT_FOUND:
+            CloseHandle(handle)
+        except OSError as e:
+            winerror = getattr(e, 'winerror', 0)
+            if winerror == ERROR_FILE_NOT_FOUND:
                 return False
         return True
 

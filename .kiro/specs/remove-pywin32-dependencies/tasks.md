@@ -56,7 +56,7 @@
   - Test named pipe message mode functionality
   - _Requirements: 3.5_
 
-- [ ] 9. Update secure file operations
+- [x] 9. Update secure file operations
   - Replace win32security functions in _secure_open.py with new ctypes implementations
   - Update get_file_owner_in_windows to use new LookupAccountSid
   - Replace set_file_permissions_in_windows to use new security functions

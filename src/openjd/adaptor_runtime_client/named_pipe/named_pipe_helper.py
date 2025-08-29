@@ -43,9 +43,6 @@ from .._win32._file_operations import (
     ERROR_MORE_DATA,
     NO_ERROR,
 )
-    PIPE_WAIT,
-    SetNamedPipeHandleState,
-)
 
 from .named_pipe_config import (
     NAMED_PIPE_BUFFER_SIZE,

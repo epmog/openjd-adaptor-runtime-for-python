@@ -87,23 +87,25 @@ SidTypeLabel = 10
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-sid_identifier_authority
 class SID_IDENTIFIER_AUTHORITY(Structure):
     _fields_ = [
-        ("Value", BYTE * 6),
+        ("Value", ctypes.c_ubyte * 6),  # BYTE should be unsigned
     ]
 
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-sid
 class SID(Structure):
+    _pack_ = 1  # Pack structure to avoid padding
     _fields_ = [
-        ("Revision", BYTE),
-        ("SubAuthorityCount", BYTE),
+        ("Revision", ctypes.c_ubyte),        # BYTE should be unsigned
+        ("SubAuthorityCount", ctypes.c_ubyte), # BYTE should be unsigned
         ("IdentifierAuthority", SID_IDENTIFIER_AUTHORITY),
         ("SubAuthority", DWORD * SID_MAX_SUB_AUTHORITIES),
     ]
 
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-acl
 class ACL(Structure):
+    _pack_ = 1  # Pack structure to avoid padding
     _fields_ = [
-        ("AclRevision", BYTE),
-        ("Sbz1", BYTE),
+        ("AclRevision", ctypes.c_ubyte),  # BYTE should be unsigned
+        ("Sbz1", ctypes.c_ubyte),         # BYTE should be unsigned
         ("AclSize", WORD),
         ("AceCount", WORD),
         ("Sbz2", WORD),
@@ -111,9 +113,10 @@ class ACL(Structure):
 
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-security_descriptor
 class SECURITY_DESCRIPTOR(Structure):
+    _pack_ = 1  # Pack structure to avoid padding
     _fields_ = [
-        ("Revision", BYTE),
-        ("Sbz1", BYTE),
+        ("Revision", ctypes.c_ubyte),  # BYTE should be unsigned
+        ("Sbz1", ctypes.c_ubyte),      # BYTE should be unsigned
         ("Control", WORD),
         ("Owner", POINTER(SID)),
         ("Group", POINTER(SID)),
@@ -123,16 +126,18 @@ class SECURITY_DESCRIPTOR(Structure):
 
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-access_allowed_ace
 class ACCESS_ALLOWED_ACE(Structure):
+    _pack_ = 1  # Pack structure to avoid padding
     _fields_ = [
-        ("Header", BYTE * 4),  # ACE_HEADER
+        ("Header", ctypes.c_ubyte * 4),  # ACE_HEADER - BYTE should be unsigned
         ("Mask", DWORD),
         ("SidStart", DWORD),  # First DWORD of SID
     ]
 
 # Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-access_denied_ace
 class ACCESS_DENIED_ACE(Structure):
+    _pack_ = 1  # Pack structure to avoid padding
     _fields_ = [
-        ("Header", BYTE * 4),  # ACE_HEADER
+        ("Header", ctypes.c_ubyte * 4),  # ACE_HEADER - BYTE should be unsigned
         ("Mask", DWORD),
         ("SidStart", DWORD),  # First DWORD of SID
     ]

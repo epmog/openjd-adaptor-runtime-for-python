@@ -57,8 +57,8 @@ class SECURITY_ATTRIBUTES(ctypes.Structure):
 # https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-overlapped
 class OVERLAPPED(ctypes.Structure):
     _fields_ = [
-        ("Internal", PULONG),
-        ("InternalHigh", PULONG),
+        ("Internal", ctypes.c_void_p),      # ULONG_PTR - pointer-sized integer
+        ("InternalHigh", ctypes.c_void_p),  # ULONG_PTR - pointer-sized integer
         ("Offset", DWORD),
         ("OffsetHigh", DWORD),
         ("hEvent", HANDLE),

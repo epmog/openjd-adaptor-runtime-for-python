@@ -1,0 +1,347 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+import sys
+
+# This assertion short-circuits mypy from type checking this module on platforms other than Windows
+# https://mypy.readthedocs.io/en/stable/common_issues.html#python-version-and-system-platform-checks
+assert sys.platform == "win32"
+
+# =======================
+# File Access Constants
+# =======================
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/secauthz/generic-access-rights
+GENERIC_READ = 0x80000000
+GENERIC_WRITE = 0x40000000
+GENERIC_EXECUTE = 0x20000000
+GENERIC_ALL = 0x10000000
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+FILE_READ_DATA = 0x0001
+FILE_WRITE_DATA = 0x0002
+FILE_APPEND_DATA = 0x0004
+FILE_READ_EA = 0x0008
+FILE_WRITE_EA = 0x0010
+FILE_EXECUTE = 0x0020
+FILE_DELETE_CHILD = 0x0040
+FILE_READ_ATTRIBUTES = 0x0080
+FILE_WRITE_ATTRIBUTES = 0x0100
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/secauthz/standard-access-rights
+DELETE = 0x00010000
+READ_CONTROL = 0x00020000
+WRITE_DAC = 0x00040000
+WRITE_OWNER = 0x00080000
+SYNCHRONIZE = 0x00100000
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+FILE_GENERIC_READ = (
+    GENERIC_READ |
+    FILE_READ_DATA |
+    FILE_READ_ATTRIBUTES |
+    FILE_READ_EA |
+    SYNCHRONIZE
+)
+
+FILE_GENERIC_WRITE = (
+    GENERIC_WRITE |
+    FILE_WRITE_DATA |
+    FILE_WRITE_ATTRIBUTES |
+    FILE_WRITE_EA |
+    FILE_APPEND_DATA |
+    SYNCHRONIZE
+)
+
+FILE_GENERIC_EXECUTE = (
+    GENERIC_EXECUTE |
+    FILE_READ_ATTRIBUTES |
+    FILE_EXECUTE |
+    SYNCHRONIZE
+)
+
+# =======================
+# Security Constants
+# =======================
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-acl
+ACL_REVISION = 2
+ACL_REVISION_DS = 4
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/secauthz/security-descriptor-definition-language
+OWNER_SECURITY_INFORMATION = 0x00000001
+GROUP_SECURITY_INFORMATION = 0x00000002
+DACL_SECURITY_INFORMATION = 0x00000004
+SACL_SECURITY_INFORMATION = 0x00000008
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/winnt/ne-winnt-sid_name_use
+SidTypeUser = 1
+SidTypeGroup = 2
+SidTypeDomain = 3
+SidTypeAlias = 4
+SidTypeWellKnownGroup = 5
+SidTypeDeletedAccount = 6
+SidTypeInvalid = 7
+SidTypeUnknown = 8
+SidTypeComputer = 9
+SidTypeLabel = 10
+
+# =======================
+# Named Pipe Constants
+# =======================
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createnamedpipea
+PIPE_ACCESS_INBOUND = 0x00000001
+PIPE_ACCESS_OUTBOUND = 0x00000002
+PIPE_ACCESS_DUPLEX = 0x00000003
+
+PIPE_TYPE_BYTE = 0x00000000
+PIPE_TYPE_MESSAGE = 0x00000004
+
+PIPE_READMODE_BYTE = 0x00000000
+PIPE_READMODE_MESSAGE = 0x00000002
+
+PIPE_WAIT = 0x00000000
+PIPE_NOWAIT = 0x00000001
+
+PIPE_ACCEPT_REMOTE_CLIENTS = 0x00000000
+PIPE_REJECT_REMOTE_CLIENTS = 0x00000008
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+CREATE_NEW = 1
+CREATE_ALWAYS = 2
+OPEN_EXISTING = 3
+OPEN_ALWAYS = 4
+TRUNCATE_EXISTING = 5
+
+# File sharing constants
+FILE_SHARE_READ = 0x00000001
+FILE_SHARE_WRITE = 0x00000002
+FILE_SHARE_DELETE = 0x00000004
+
+# File attributes and flags
+FILE_ATTRIBUTE_READONLY = 0x00000001
+FILE_ATTRIBUTE_HIDDEN = 0x00000002
+FILE_ATTRIBUTE_SYSTEM = 0x00000004
+FILE_ATTRIBUTE_DIRECTORY = 0x00000010
+FILE_ATTRIBUTE_ARCHIVE = 0x00000020
+FILE_ATTRIBUTE_DEVICE = 0x00000040
+FILE_ATTRIBUTE_NORMAL = 0x00000080
+FILE_ATTRIBUTE_TEMPORARY = 0x00000100
+FILE_ATTRIBUTE_SPARSE_FILE = 0x00000200
+FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400
+FILE_ATTRIBUTE_COMPRESSED = 0x00000800
+FILE_ATTRIBUTE_OFFLINE = 0x00001000
+FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
+FILE_ATTRIBUTE_ENCRYPTED = 0x00004000
+
+# =======================
+# Error Code Constants
+# =======================
+
+# Success
+NO_ERROR = 0
+ERROR_SUCCESS = 0
+
+# Common error codes
+# Ref: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
+ERROR_INVALID_FUNCTION = 1
+ERROR_FILE_NOT_FOUND = 2
+ERROR_PATH_NOT_FOUND = 3
+ERROR_TOO_MANY_OPEN_FILES = 4
+ERROR_ACCESS_DENIED = 5
+ERROR_INVALID_HANDLE = 6
+ERROR_ARENA_TRASHED = 7
+ERROR_NOT_ENOUGH_MEMORY = 8
+ERROR_INVALID_BLOCK = 9
+ERROR_BAD_ENVIRONMENT = 10
+ERROR_BAD_FORMAT = 11
+ERROR_INVALID_ACCESS = 12
+ERROR_INVALID_DATA = 13
+ERROR_OUTOFMEMORY = 14
+ERROR_INVALID_DRIVE = 15
+ERROR_CURRENT_DIRECTORY = 16
+ERROR_NOT_SAME_DEVICE = 17
+ERROR_NO_MORE_FILES = 18
+
+# Pipe-related error codes
+ERROR_BROKEN_PIPE = 109
+ERROR_OPEN_FAILED = 110
+ERROR_BUFFER_OVERFLOW = 111
+ERROR_DISK_FULL = 112
+ERROR_NO_MORE_SEARCH_HANDLES = 113
+ERROR_INVALID_TARGET_HANDLE = 114
+ERROR_INVALID_CATEGORY = 117
+ERROR_INVALID_VERIFY_SWITCH = 118
+ERROR_BAD_DRIVER_LEVEL = 119
+ERROR_CALL_NOT_IMPLEMENTED = 120
+ERROR_SEM_TIMEOUT = 121
+ERROR_INSUFFICIENT_BUFFER = 122
+ERROR_INVALID_NAME = 123
+ERROR_INVALID_LEVEL = 124
+ERROR_NO_VOLUME_LABEL = 125
+ERROR_MOD_NOT_FOUND = 126
+ERROR_PROC_NOT_FOUND = 127
+
+# More pipe and file error codes
+ERROR_PIPE_LOCAL = 229
+ERROR_BAD_PIPE = 230
+ERROR_PIPE_BUSY = 231
+ERROR_NO_DATA = 232
+ERROR_PIPE_NOT_CONNECTED = 233
+ERROR_MORE_DATA = 234
+
+# Timeout and wait constants
+WAIT_TIMEOUT = 258
+ERROR_NO_MORE_ITEMS = 259
+
+# Security-related error codes
+# Ref: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1300-1699-
+ERROR_NONE_MAPPED = 1332
+ERROR_INVALID_SID = 1337
+
+# =======================
+# Handle Constants
+# =======================
+
+# Ref: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+INVALID_HANDLE_VALUE = -1
+
+# =======================
+# Exports
+# =======================
+
+__all__ = [
+    # File access constants
+    'GENERIC_READ',
+    'GENERIC_WRITE', 
+    'GENERIC_EXECUTE',
+    'GENERIC_ALL',
+    'FILE_READ_DATA',
+    'FILE_WRITE_DATA',
+    'FILE_APPEND_DATA',
+    'FILE_READ_EA',
+    'FILE_WRITE_EA',
+    'FILE_EXECUTE',
+    'FILE_DELETE_CHILD',
+    'FILE_READ_ATTRIBUTES',
+    'FILE_WRITE_ATTRIBUTES',
+    'DELETE',
+    'READ_CONTROL',
+    'WRITE_DAC',
+    'WRITE_OWNER',
+    'SYNCHRONIZE',
+    'FILE_GENERIC_READ',
+    'FILE_GENERIC_WRITE',
+    'FILE_GENERIC_EXECUTE',
+    
+    # Security constants
+    'ACL_REVISION',
+    'ACL_REVISION_DS',
+    'OWNER_SECURITY_INFORMATION',
+    'GROUP_SECURITY_INFORMATION',
+    'DACL_SECURITY_INFORMATION',
+    'SACL_SECURITY_INFORMATION',
+    'SidTypeUser',
+    'SidTypeGroup',
+    'SidTypeDomain',
+    'SidTypeAlias',
+    'SidTypeWellKnownGroup',
+    'SidTypeDeletedAccount',
+    'SidTypeInvalid',
+    'SidTypeUnknown',
+    'SidTypeComputer',
+    'SidTypeLabel',
+    
+    # Named pipe constants
+    'PIPE_ACCESS_INBOUND',
+    'PIPE_ACCESS_OUTBOUND',
+    'PIPE_ACCESS_DUPLEX',
+    'PIPE_TYPE_BYTE',
+    'PIPE_TYPE_MESSAGE',
+    'PIPE_READMODE_BYTE',
+    'PIPE_READMODE_MESSAGE',
+    'PIPE_WAIT',
+    'PIPE_NOWAIT',
+    'PIPE_ACCEPT_REMOTE_CLIENTS',
+    'PIPE_REJECT_REMOTE_CLIENTS',
+    
+    # File creation constants
+    'CREATE_NEW',
+    'CREATE_ALWAYS',
+    'OPEN_EXISTING',
+    'OPEN_ALWAYS',
+    'TRUNCATE_EXISTING',
+    
+    # File sharing constants
+    'FILE_SHARE_READ',
+    'FILE_SHARE_WRITE',
+    'FILE_SHARE_DELETE',
+    
+    # File attributes
+    'FILE_ATTRIBUTE_READONLY',
+    'FILE_ATTRIBUTE_HIDDEN',
+    'FILE_ATTRIBUTE_SYSTEM',
+    'FILE_ATTRIBUTE_DIRECTORY',
+    'FILE_ATTRIBUTE_ARCHIVE',
+    'FILE_ATTRIBUTE_DEVICE',
+    'FILE_ATTRIBUTE_NORMAL',
+    'FILE_ATTRIBUTE_TEMPORARY',
+    'FILE_ATTRIBUTE_SPARSE_FILE',
+    'FILE_ATTRIBUTE_REPARSE_POINT',
+    'FILE_ATTRIBUTE_COMPRESSED',
+    'FILE_ATTRIBUTE_OFFLINE',
+    'FILE_ATTRIBUTE_NOT_CONTENT_INDEXED',
+    'FILE_ATTRIBUTE_ENCRYPTED',
+    
+    # Error constants
+    'NO_ERROR',
+    'ERROR_SUCCESS',
+    'ERROR_INVALID_FUNCTION',
+    'ERROR_FILE_NOT_FOUND',
+    'ERROR_PATH_NOT_FOUND',
+    'ERROR_TOO_MANY_OPEN_FILES',
+    'ERROR_ACCESS_DENIED',
+    'ERROR_INVALID_HANDLE',
+    'ERROR_ARENA_TRASHED',
+    'ERROR_NOT_ENOUGH_MEMORY',
+    'ERROR_INVALID_BLOCK',
+    'ERROR_BAD_ENVIRONMENT',
+    'ERROR_BAD_FORMAT',
+    'ERROR_INVALID_ACCESS',
+    'ERROR_INVALID_DATA',
+    'ERROR_OUTOFMEMORY',
+    'ERROR_INVALID_DRIVE',
+    'ERROR_CURRENT_DIRECTORY',
+    'ERROR_NOT_SAME_DEVICE',
+    'ERROR_NO_MORE_FILES',
+    'ERROR_BROKEN_PIPE',
+    'ERROR_OPEN_FAILED',
+    'ERROR_BUFFER_OVERFLOW',
+    'ERROR_DISK_FULL',
+    'ERROR_NO_MORE_SEARCH_HANDLES',
+    'ERROR_INVALID_TARGET_HANDLE',
+    'ERROR_INVALID_CATEGORY',
+    'ERROR_INVALID_VERIFY_SWITCH',
+    'ERROR_BAD_DRIVER_LEVEL',
+    'ERROR_CALL_NOT_IMPLEMENTED',
+    'ERROR_SEM_TIMEOUT',
+    'ERROR_INSUFFICIENT_BUFFER',
+    'ERROR_INVALID_NAME',
+    'ERROR_INVALID_LEVEL',
+    'ERROR_NO_VOLUME_LABEL',
+    'ERROR_MOD_NOT_FOUND',
+    'ERROR_PROC_NOT_FOUND',
+    'ERROR_PIPE_LOCAL',
+    'ERROR_BAD_PIPE',
+    'ERROR_PIPE_BUSY',
+    'ERROR_NO_DATA',
+    'ERROR_PIPE_NOT_CONNECTED',
+    'ERROR_MORE_DATA',
+    'WAIT_TIMEOUT',
+    'ERROR_NO_MORE_ITEMS',
+    'ERROR_NONE_MAPPED',
+    'ERROR_INVALID_SID',
+    
+    # Handle constants
+    'INVALID_HANDLE_VALUE',
+]

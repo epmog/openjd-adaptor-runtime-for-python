@@ -1,7 +1,9 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
+import errno
 import ctypes
 import sys
+from typing import Optional
 
 from ctypes.wintypes import (
     BOOL,
@@ -30,19 +32,49 @@ NO_ERROR = 0
 # Structures/Types
 # =======================
 
+# https://learn.microsoft.com/en-us/windows/win32/api/wtypesbase/ns-wtypesbase-security_attributes
+class SECURITY_ATTRIBUTES(ctypes.Structure):
+    _fields_ = [("nLength", DWORD), ("lpSecurityDescriptor", LPVOID), ("bInheritHandle", BOOL)]
+
+class _DUMMYSTRUCTNAME(ctypes.Structure):
+    _fields_ = [
+        ("Offset", DWORD),
+        ("OffsetHigh", DWORD),
+    ]
+
+class _DUMMYUNIONNAME(ctypes.Union):
+    _fields_ = [
+        ("DUMMYSTRUCTNAME", _DUMMYSTRUCTNAME),
+        ("Pointer",  ctypes.c_void_p),
+    ]
+
 # https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-overlapped
 class OVERLAPPED(ctypes.Structure):
+    _anonymous_ = ("u",)
     _fields_ = [
         ("Internal", ctypes.c_void_p),      # ULONG_PTR - pointer-sized integer
         ("InternalHigh", ctypes.c_void_p),  # ULONG_PTR - pointer-sized integer
-        ("Offset", DWORD),
-        ("OffsetHigh", DWORD),
+        ("u", _DUMMYUNIONNAME),
         ("hEvent", HANDLE),
     ]
 
 # Import shared kernel32 instance
 from ._kernel32 import kernel32
 
+def CreateFile(filename: str, desired_access: int, security_attributes: Optional[SECURITY_ATTRIBUTES], creation_disposition: int) -> HANDLE:
+    handle = kernel32.CreateFileA(
+        filename.encode("ascii"),
+        desired_access,
+        0,
+        security_attributes,
+        creation_disposition,
+        0,
+        None,
+    )
+    error_code = kernel32.GetLastError()
+    if error_code == 0:
+        return handle
+    raise OSError(errno.ENOENT, error_code, filename)
 
 def ReadFile(handle: HANDLE, buffer_size: int) -> tuple[int, bytes]:
     """

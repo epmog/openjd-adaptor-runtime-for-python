@@ -74,7 +74,8 @@ class TestNamedPipeHelper:
         """
 
         # GIVEN
-        pipe_name = r"\\.\pipe\test_if_named_pipe_exist"
+        pipe_name = r"\\.\pipe\test_if_named_pipe_exists"
+        print(pipe_name)
         assert not NamedPipeHelper.check_named_pipe_exists(pipe_name)
         server_handle = NamedPipeHelper.create_named_pipe_server(pipe_name, TIMEOUT_SECONDS)
 

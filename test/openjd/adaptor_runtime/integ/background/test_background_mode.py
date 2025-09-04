@@ -134,7 +134,7 @@ class TestDaemonMode:
 
             try:
                 handle = CreateFileA(
-                    connection_settings.socket.encode('utf-8'),
+                    connection_settings.socket.encode('ascii'),
                     GENERIC_READ,
                     0,  # No sharing
                     None,  # Default security

@@ -33,6 +33,7 @@ from .._win32._named_pipes import (
     ERROR_INVALID_HANDLE,
 )
 from .._win32._file_operations import (
+    CreateFile,
     ReadFile,
     WriteFile,
     ERROR_MORE_DATA,
@@ -218,6 +219,7 @@ class NamedPipeHelper:
         data_parts: List[str] = []
         while True:
             try:
+                print(len(data_parts))
                 return_code, data = ReadFile(handle, NAMED_PIPE_BUFFER_SIZE)
                 data_parts.append(data.decode("utf-8"))
                 if return_code == ERROR_MORE_DATA:
@@ -313,16 +315,17 @@ class NamedPipeHelper:
         handle = None
         while handle is None:
             try:
-                handle = CreateFileA(
-                    pipe_name.encode("ascii"),  # pipe name
-                    # Give the read / write permission
-                    GENERIC_READ | GENERIC_WRITE,
-                    0,  # Disable the sharing Mode
-                    None, # TODO: NamedPipeHelper.create_security_attributes(),
-                    OPEN_EXISTING,  # Open existing pipe
-                    0,  # No Additional flags
-                    None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
-                )
+                # handle = CreateFileA(
+                #     pipe_name.encode("ascii"),  # pipe name
+                #     # Give the read / write permission
+                #     GENERIC_READ | GENERIC_WRITE,
+                #     0,  # Disable the sharing Mode
+                #     None, # TODO: NamedPipeHelper.create_security_attributes(),
+                #     OPEN_EXISTING,  # Open existing pipe
+                #     0,  # No Additional flags
+                #     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
+                # )
+                CreateFile(pipe_name, GENERIC_READ | GENERIC_WRITE, None, OPEN_EXISTING)
             except (OSError, WindowsError) as e:
                 # NamedPipe server may be not ready,
                 # or no additional resource to create new instance and need to wait for previous connection release
@@ -423,20 +426,25 @@ class NamedPipeHelper:
             bool: True if the pipe exists, False otherwise.
         """
         try:
-            handle = CreateFileA(
-                pipe_name.encode("ascii"),
+            # handle = CreateFileA(
+            #     pipe_name.encode("ascii"),
+            #     GENERIC_READ,
+            #     0,  # Disable the sharing Mode
+            #     None,  # Don't need any security attributes
+            #     OPEN_EXISTING,  # Open existing pipe
+            #     0,  # No Additional flags
+            #     None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
+            # )
+            handle = CreateFile(
+                pipe_name,
                 GENERIC_READ,
-                0,  # Disable the sharing Mode
-                None,  # Don't need any security attributes
-                OPEN_EXISTING,  # Open existing pipe
-                0,  # No Additional flags
-                None,  # A valid handle to a template file, This parameter is ignored when opening an existing pipe.
+                None,
+                OPEN_EXISTING,
             )
+        except FileNotFoundError:
+            return False
+        else:
             CloseHandle(handle)
-        except (OSError, WindowsError) as e:
-            winerror = getattr(e, 'winerror', 0)
-            if winerror == ERROR_FILE_NOT_FOUND:
-                return False
         return True
 
     @staticmethod
@@ -452,6 +460,7 @@ class NamedPipeHelper:
         """
 
         pipe_name = rf"\\.\pipe\{prefix}_{str(os.getpid())}"
+        print(pipe_name)
 
         for i in range(5):
             if not NamedPipeHelper.check_named_pipe_exists(pipe_name):

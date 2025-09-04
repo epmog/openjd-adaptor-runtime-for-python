@@ -49,10 +49,6 @@ from ._constants import (
 # Structures/Types
 # =======================
 
-# https://learn.microsoft.com/en-us/windows/win32/api/wtypesbase/ns-wtypesbase-security_attributes
-class SECURITY_ATTRIBUTES(ctypes.Structure):
-    _fields_ = [("nLength", DWORD), ("lpSecurityDescriptor", LPVOID), ("bInheritHandle", BOOL)]
-
 # https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-overlapped
 class OVERLAPPED(ctypes.Structure):
     _fields_ = [
